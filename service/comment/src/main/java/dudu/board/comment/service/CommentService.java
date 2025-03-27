@@ -76,7 +76,7 @@ public class CommentService {
         if (!comment.isRoot()) {
             commentRepository.findById(comment.getParentCommentId())
                     .filter(Comment::getDeleted)
-                    .filter(this::hasChildren)
+                    .filter(not(this::hasChildren))
                     .ifPresent(this::delete);
         }
     }
