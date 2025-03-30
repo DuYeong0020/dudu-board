@@ -20,7 +20,7 @@ public class CommentPath {
     private static final int MAX_DEPTH = 5;
 
     private static final String MIN_CHUNK = String.valueOf(CHARSET.charAt(0)).repeat(DEPTH_CHUNK_SIZE);
-    private static final String MAX_CHUNK = String.valueOf(CHARSET.length() - 1).repeat(DEPTH_CHUNK_SIZE);
+    private static final String MAX_CHUNK = String.valueOf(CHARSET.charAt(CHARSET.length() - 1)).repeat(DEPTH_CHUNK_SIZE);
 
     public static CommentPath create(String path) {
         if (isDepthOverflowed(path)) {
