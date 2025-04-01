@@ -11,7 +11,7 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-@Table
+@Table(name = "article_like")
 @Getter
 @Entity
 @ToString
