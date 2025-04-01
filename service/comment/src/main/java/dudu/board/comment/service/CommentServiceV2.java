@@ -1,7 +1,9 @@
 package dudu.board.comment.service;
 
+import dudu.board.comment.entity.ArticleCommentCount;
 import dudu.board.comment.entity.CommentPath;
 import dudu.board.comment.entity.CommentV2;
+import dudu.board.comment.repository.ArticleCommentCountRepository;
 import dudu.board.comment.repository.CommentRepositoryV2;
 import dudu.board.comment.service.request.CommentCreateRequestV2;
 import dudu.board.comment.service.response.CommentPageResponse;
@@ -22,6 +24,7 @@ public class CommentServiceV2 {
 
     private final Snowflake snowflake = new Snowflake();
     private final CommentRepositoryV2 commentRepository;
+    private final ArticleCommentCountRepository articleCommentCountRepository;
 
     @Transactional
     public CommentResponse create(CommentCreateRequestV2 request) {
@@ -39,6 +42,13 @@ public class CommentServiceV2 {
                         )
                 )
         );
+
+        int result = articleCommentCountRepository.increase(request.getArticleId());
+        if (result == 0) {
+            articleCommentCountRepository.save(
+                    ArticleCommentCount.init(request.getArticleId(), 1L)
+            );
+        }
 
         return CommentResponse.from(comment);
     }
@@ -60,7 +70,6 @@ public class CommentServiceV2 {
                         delete(comment);
                     }
                 });
-
     }
 
     public CommentPageResponse readAll(Long articleId, Long page, Long pageSize) {
@@ -101,11 +110,18 @@ public class CommentServiceV2 {
 
     private void delete(CommentV2 comment) {
         commentRepository.delete(comment);
+        articleCommentCountRepository.decrease(comment.getArticleId());
         if (!comment.isRoot()) {
             commentRepository.findByPath(comment.getCommentPath().getParentPath())
                     .filter(CommentV2::getDeleted)
                     .filter(not(this::hasChildren))
                     .ifPresent(this::delete);
         }
+    }
+
+    public Long count(Long articleId) {
+        return articleCommentCountRepository.findById(articleId)
+                .map(ArticleCommentCount::getCommentCount)
+                .orElse(0L);
     }
 }
