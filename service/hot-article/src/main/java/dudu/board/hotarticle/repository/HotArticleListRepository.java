@@ -2,7 +2,6 @@ package dudu.board.hotarticle.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,14 +34,6 @@ public class HotArticleListRepository {
         });
     }
 
-    private String generateKey(LocalDateTime time) {
-        return generateKey(TIME_FORMATTER.format(time));
-    }
-
-    private String generateKey(String dateStr) {
-        return KEY_FORMAT.formatted(dateStr);
-    }
-
     public List<Long> readAll(String dateStr) {
         return redisTemplate.opsForZSet()
                 .reverseRangeWithScores(generateKey(dateStr), 0, -1).stream()
@@ -51,4 +42,17 @@ public class HotArticleListRepository {
                 .map(Long::valueOf)
                 .toList();
     }
+
+    public void remove(Long articleId, LocalDateTime time) {
+        redisTemplate.opsForZSet().remove(generateKey(time), String.valueOf(articleId));
+    }
+
+    private String generateKey(LocalDateTime time) {
+        return generateKey(TIME_FORMATTER.format(time));
+    }
+
+    private String generateKey(String dateStr) {
+        return KEY_FORMAT.formatted(dateStr);
+    }
+
 }
