@@ -1,4 +1,4 @@
-package kuke.board.common.outboxmessagerelay;
+package dudu.board.common.outboxmessagerelay;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

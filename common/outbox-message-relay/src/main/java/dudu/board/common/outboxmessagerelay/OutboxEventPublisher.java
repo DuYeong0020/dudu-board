@@ -1,4 +1,4 @@
-package kuke.board.common.outboxmessagerelay;
+package dudu.board.common.outboxmessagerelay;
 
 import kuke.board.common.event.Event;
 import kuke.board.common.event.EventPayload;

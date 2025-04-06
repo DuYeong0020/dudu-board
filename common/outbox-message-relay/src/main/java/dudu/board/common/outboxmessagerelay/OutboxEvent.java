@@ -1,4 +1,4 @@
-package kuke.board.common.outboxmessagerelay;
+package dudu.board.common.outboxmessagerelay;
 
 import lombok.Getter;
 import lombok.ToString;

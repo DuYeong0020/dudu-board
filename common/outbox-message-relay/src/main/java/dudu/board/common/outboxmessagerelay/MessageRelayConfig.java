@@ -1,4 +1,4 @@
-package kuke.board.common.outboxmessagerelay;
+package dudu.board.common.outboxmessagerelay;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
 
 @EnableAsync
 @Configuration
-@ComponentScan("kuke.board.common.outboxmessagerelay")
+@ComponentScan("dudu.board.common.outboxmessagerelay")
 @EnableScheduling
 public class MessageRelayConfig {
     @Value("${spring.kafka.bootstrap-servers}")
