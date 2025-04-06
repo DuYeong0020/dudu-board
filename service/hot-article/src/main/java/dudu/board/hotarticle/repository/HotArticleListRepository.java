@@ -19,12 +19,13 @@ import java.util.List;
 public class HotArticleListRepository {
     private final StringRedisTemplate redisTemplate;
 
+    // hot-article::list::{yyyyMMdd}
     private static final String KEY_FORMAT = "hot-article::list::%s";
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     public void add(Long articleId, LocalDateTime time, Long score, Long limit, Duration ttl) {
-        redisTemplate.executePipelined((RedisCallback<?>)  action -> {
+        redisTemplate.executePipelined((RedisCallback<?>) action -> {
             StringRedisConnection conn = (StringRedisConnection) action;
             String key = generateKey(time);
             conn.zAdd(key, score, String.valueOf(articleId));
@@ -32,15 +33,6 @@ public class HotArticleListRepository {
             conn.expire(key, ttl.toSeconds());
             return null;
         });
-    }
-
-    public List<Long> readAll(String dateStr) {
-        return redisTemplate.opsForZSet()
-                .reverseRangeWithScores(generateKey(dateStr), 0, -1).stream()
-                .peek(tuple -> log.info("[HotArticleListRepository.readAll] articleId={}, score={}", tuple.getValue(), tuple.getScore()))
-                .map(ZSetOperations.TypedTuple::getValue)
-                .map(Long::valueOf)
-                .toList();
     }
 
     public void remove(Long articleId, LocalDateTime time) {
@@ -55,4 +47,13 @@ public class HotArticleListRepository {
         return KEY_FORMAT.formatted(dateStr);
     }
 
+    public List<Long> readAll(String dateStr) {
+        return redisTemplate.opsForZSet()
+                .reverseRangeWithScores(generateKey(dateStr), 0, -1).stream()
+                .peek(tuple ->
+                        log.info("[HotArticleListRepository.readAll] articleId={}, score={}", tuple.getValue(), tuple.getScore()))
+                .map(ZSetOperations.TypedTuple::getValue)
+                .map(Long::valueOf)
+                .toList();
+    }
 }
