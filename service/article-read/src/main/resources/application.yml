@@ -15,11 +15,11 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       enable-auto-commit: false
 endpoints:
+  dudu-board-view-service:
+    url: http://127.0.0.1:9003
   dudu-board-article-service:
     url: http://127.0.0.1:9006
   dudu-board-comment-service:
     url: http://127.0.0.1:9001
   dudu-board-like-service:
     url: http://127.0.0.1:9002
-  dudu-board-view-service:
-    url: http://127.0.0.1:9003
