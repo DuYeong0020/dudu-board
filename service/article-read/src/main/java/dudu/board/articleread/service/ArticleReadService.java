@@ -5,9 +5,12 @@ import dudu.board.articleread.client.ArticleClient;
 import dudu.board.articleread.client.CommentClient;
 import dudu.board.articleread.client.LikeClient;
 import dudu.board.articleread.client.ViewClient;
+import dudu.board.articleread.repository.ArticleIdListRepository;
 import dudu.board.articleread.repository.ArticleQueryModel;
 import dudu.board.articleread.repository.ArticleQueryModelRepository;
+import dudu.board.articleread.repository.BoardArticleCountRepository;
 import dudu.board.articleread.service.event.handler.EventHandler;
+import dudu.board.articleread.service.response.ArticleReadPageResponse;
 import dudu.board.articleread.service.response.ArticleReadResponse;
 import kuke.board.common.event.Event;
 import kuke.board.common.event.EventPayload;
@@ -29,7 +32,9 @@ public class ArticleReadService {
     private final CommentClient commentClient;
     private final LikeClient likeClient;
     private final ViewClient viewClient;
+    private final ArticleIdListRepository articleIdListRepository;
     private final ArticleQueryModelRepository articleQueryModelRepository;
+    private final BoardArticleCountRepository boardArticleCountRepository;
     private final List<EventHandler> eventHandlers;
 
 
@@ -50,6 +55,38 @@ public class ArticleReadService {
                 articleQueryModel,
                 viewClient.count(articleId)
         );
+    }
+
+    public ArticleReadPageResponse readAll(Long boardId, Long page, Long pageSize) {
+        return ArticleReadPageResponse.of(
+                readAll(
+                        readAllArticleIds(boardId, page, pageSize)
+                ),
+                count(boardId)
+        );
+    }
+
+    private long count(Long boardId) {
+        Long result = boardArticleCountRepository.read(boardId);
+        if (result != null) {
+            return result;
+        }
+        long count = articleClient.count(boardId);
+        boardArticleCountRepository.createOrUpdate(boardId, count);
+        return count;
+    }
+
+
+    private List<Long> readAllArticleIds(Long boardId, Long page, Long pageSize) {
+        List<Long> articleIds = articleIdListRepository.readAll(boardId, (page - 1) * pageSize, pageSize);
+        if (pageSize == articleIds.size()) {
+            log.info("[ArticleReadService.readAllArticleIds] return redis data.");
+            return articleIds;
+        }
+        log.info("[ArticleReadService.readAllArticleIds] return origin data.");
+        return articleClient.readAll(boardId, page, pageSize).getArticles().stream()
+                .map(ArticleClient.ArticleResponse::getArticleId)
+                .toList();
     }
 
     private Optional<ArticleQueryModel> fetch(Long articleId) {
@@ -80,5 +117,22 @@ public class ArticleReadService {
                 .toList();
     }
 
+    public List<ArticleReadResponse> readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
+        return readAll(
+            readAllInfiniteScrollArticleIds(boardId, lastArticleId, pageSize)
+        );
+    }
+
+    private List<Long> readAllInfiniteScrollArticleIds(Long boardId, Long lastArticleId, Long pageSize) {
+        List<Long> articleIds = articleIdListRepository.readAllInfiniteScroll(boardId, lastArticleId, pageSize);
+        if (pageSize == articleIds.size()) {
+            log.info("[ArticleReadService.readAllInfiniteScrollArticleIds] return redis data.");
+            return articleIds;
+        }
+        log.info("[ArticleReadService.readAllInfiniteScrollArticleIds] return origin data.");
+        return articleClient.readAllInfiniteScroll(boardId, lastArticleId, pageSize).stream()
+                .map(ArticleClient.ArticleResponse::getArticleId)
+                .toList();
+    }
 
 }
