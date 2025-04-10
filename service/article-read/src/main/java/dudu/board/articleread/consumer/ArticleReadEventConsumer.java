@@ -25,7 +25,7 @@ public class ArticleReadEventConsumer {
     public void listen(String message, Acknowledgment ack) {
         log.info("[ArticleReadEventConsumer.listen] message={}", message);
         Event<EventPayload> event = Event.fromJson(message);
-        if (event == null) {
+        if (event != null) {
             articleReadService.handleEvent(event);
         }
         ack.acknowledge();
